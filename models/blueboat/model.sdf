@@ -1,0 +1,243 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <model name="blueboat">
+    <static>false</static>
+
+    <!-- Base Link (Catamaran Hull & Electronics Deck) -->
+    <link name="base_link">
+      <pose>0 0 0 0 0 0</pose>
+      <inertial>
+        <pose>0.0 0.0 0.05 0 0 0</pose>
+        <mass>14.5</mass>
+        <inertia>
+          <ixx>0.85</ixx><ixy>0.0</ixy><ixz>0.0</ixz>
+          <iyy>1.45</iyy><iyz>0.0</iyz><izz>1.95</izz>
+        </inertia>
+      </inertial>
+
+      <!-- Realistic 3D Blue Robotics BlueBoat Visual Meshes -->
+      <visual name="blueboat_hulls_visual">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://blueboat/meshes/blueboat_hulls.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.04 0.25 0.65 1.0</ambient>
+          <diffuse>0.06 0.40 0.85 1.0</diffuse>
+          <specular>0.6 0.6 0.6 1.0</specular>
+          <pbr>
+            <metal>
+              <albedo_color>0.06 0.40 0.85 1.0</albedo_color>
+              <roughness>0.25</roughness>
+              <metalness>0.1</metalness>
+            </metal>
+          </pbr>
+        </material>
+      </visual>
+
+      <visual name="blueboat_frame_visual">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://blueboat/meshes/blueboat_frame.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.1 0.1 0.1 1.0</ambient>
+          <diffuse>0.15 0.15 0.15 1.0</diffuse>
+          <specular>0.3 0.3 0.3 1.0</specular>
+          <pbr>
+            <metal>
+              <albedo_color>0.15 0.15 0.15 1.0</albedo_color>
+              <roughness>0.5</roughness>
+              <metalness>0.8</metalness>
+            </metal>
+          </pbr>
+        </material>
+      </visual>
+
+      <visual name="blueboat_antenna_visual">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://blueboat/meshes/blueboat_antenna.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.8 0.8 0.8 1.0</ambient>
+          <diffuse>0.92 0.92 0.95 1.0</diffuse>
+          <specular>0.5 0.5 0.5 1.0</specular>
+          <pbr>
+            <metal>
+              <albedo_color>0.92 0.92 0.95 1.0</albedo_color>
+              <roughness>0.3</roughness>
+              <metalness>0.1</metalness>
+            </metal>
+          </pbr>
+        </material>
+      </visual>
+
+      <!-- Port (Left) Pontoon Hull Collision -->
+      <collision name="left_hull_collision">
+        <pose>0 0.30 0 0 1.57079632679 0</pose>
+        <geometry><capsule><radius>0.13</radius><length>1.05</length></capsule></geometry>
+      </collision>
+
+      <!-- Starboard (Right) Pontoon Hull Collision -->
+      <collision name="right_hull_collision">
+        <pose>0 -0.30 0 0 1.57079632679 0</pose>
+        <geometry><capsule><radius>0.13</radius><length>1.05</length></capsule></geometry>
+      </collision>
+
+      <!-- 1. IMU Sensor (50 Hz) -->
+      <sensor name="imu_sensor" type="imu">
+        <always_on>true</always_on>
+        <update_rate>50</update_rate>
+        <topic>/blueboat/imu</topic>
+        <imu>
+          <angular_velocity>
+            <x><noise type="gaussian"><mean>0.0</mean><stddev>0.005</stddev></noise></x>
+            <y><noise type="gaussian"><mean>0.0</mean><stddev>0.005</stddev></noise></y>
+            <z><noise type="gaussian"><mean>0.0</mean><stddev>0.003</stddev></noise></z>
+          </angular_velocity>
+          <linear_acceleration>
+            <x><noise type="gaussian"><mean>0.0</mean><stddev>0.02</stddev></noise></x>
+            <y><noise type="gaussian"><mean>0.0</mean><stddev>0.02</stddev></noise></y>
+            <z><noise type="gaussian"><mean>0.0</mean><stddev>0.02</stddev></noise></z>
+          </linear_acceleration>
+        </imu>
+      </sensor>
+
+      <!-- 2. NavSat GPS Sensor (5 Hz) -->
+      <sensor name="navsat_sensor" type="navsat">
+        <always_on>true</always_on>
+        <update_rate>5</update_rate>
+        <topic>/blueboat/gps</topic>
+        <navsat>
+          <position_sensing>
+            <horizontal><noise type="gaussian"><mean>0.0</mean><stddev>0.3</stddev></noise></horizontal>
+            <vertical><noise type="gaussian"><mean>0.0</mean><stddev>0.5</stddev></noise></vertical>
+          </position_sensing>
+        </navsat>
+      </sensor>
+
+      <!-- 3. Contact Collision Sensor -->
+      <sensor name="contact_sensor" type="contact">
+        <always_on>true</always_on>
+        <update_rate>50</update_rate>
+        <topic>/blueboat/contacts</topic>
+        <contact>
+          <collision>left_hull_collision</collision>
+          <collision>right_hull_collision</collision>
+        </contact>
+      </sensor>
+
+      <!-- 4. Ping2 Port-Side Echosounder (GPU LiDAR at +90 deg / port) -->
+      <sensor name="ping2_port" type="gpu_lidar">
+        <pose>0.1 0.30 0.05 0 0 1.57079632679</pose>
+        <always_on>true</always_on>
+        <update_rate>10</update_rate>
+        <visualize>true</visualize>
+        <topic>/blueboat/ping2_port</topic>
+        <lidar>
+          <scan>
+            <horizontal><samples>1</samples><resolution>1</resolution><min_angle>0.0</min_angle><max_angle>0.0</max_angle></horizontal>
+          </scan>
+          <range><min>0.5</min><max>30.0</max><resolution>0.01</resolution></range>
+          <noise><type>gaussian</type><mean>0.0</mean><stddev>0.02</stddev></noise>
+        </lidar>
+      </sensor>
+    </link>
+
+    <!-- Left Thruster (Blue Robotics T200) -->
+    <link name="left_propeller_link">
+      <pose>-0.55 0.30 -0.06 0 0 0</pose>
+      <inertial>
+        <mass>0.15</mass>
+        <inertia><ixx>0.0002</ixx><ixy>0.0</ixy><ixz>0.0</ixz><iyy>0.0001</iyy><iyz>0.0</iyz><izz>0.0001</izz></inertia>
+      </inertial>
+      <visual name="left_propeller_visual">
+        <pose>0 0 0 0 1.57079632679 0</pose>
+        <geometry><cylinder><radius>0.05</radius><length>0.04</length></cylinder></geometry>
+        <material><ambient>0.08 0.15 0.25 1.0</ambient><diffuse>0.1 0.2 0.35 1.0</diffuse><specular>0.5 0.5 0.5 1.0</specular></material>
+      </visual>
+      <collision name="left_propeller_collision">
+        <pose>0 0 0 0 1.57079632679 0</pose>
+        <geometry><cylinder><radius>0.05</radius><length>0.04</length></cylinder></geometry>
+      </collision>
+    </link>
+
+    <joint name="left_propeller_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>left_propeller_link</child>
+      <axis><xyz>1 0 0</xyz><limit><lower>-1e16</lower><upper>1e16</upper></limit></axis>
+    </joint>
+
+    <!-- Right Thruster (Blue Robotics T200) -->
+    <link name="right_propeller_link">
+      <pose>-0.55 -0.30 -0.06 0 0 0</pose>
+      <inertial>
+        <mass>0.15</mass>
+        <inertia><ixx>0.0002</ixx><ixy>0.0</ixy><ixz>0.0</ixz><iyy>0.0001</iyy><iyz>0.0</iyz><izz>0.0001</izz></inertia>
+      </inertial>
+      <visual name="right_propeller_visual">
+        <pose>0 0 0 0 1.57079632679 0</pose>
+        <geometry><cylinder><radius>0.05</radius><length>0.04</length></cylinder></geometry>
+        <material><ambient>0.08 0.15 0.25 1.0</ambient><diffuse>0.1 0.2 0.35 1.0</diffuse><specular>0.5 0.5 0.5 1.0</specular></material>
+      </visual>
+      <collision name="right_propeller_collision">
+        <pose>0 0 0 0 1.57079632679 0</pose>
+        <geometry><cylinder><radius>0.05</radius><length>0.04</length></cylinder></geometry>
+      </collision>
+    </link>
+
+    <joint name="right_propeller_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>right_propeller_link</child>
+      <axis><xyz>1 0 0</xyz><limit><lower>-1e16</lower><upper>1e16</upper></limit></axis>
+    </joint>
+
+    <!-- Fossen Hydrodynamics Plugin -->
+    <plugin
+      filename="gz-sim-hydrodynamics-system"
+      name="gz::sim::systems::Hydrodynamics">
+      <link_name>base_link</link_name>
+      <xDotU>-3.5</xDotU><yDotV>-12.0</yDotV><zDotW>-15.0</zDotW>
+      <kDotP>-0.5</kDotP><mDotQ>-1.2</mDotQ><nDotR>-2.8</nDotR>
+      <xU>-15.0</xU><yV>-35.0</yV><zW>-40.0</zW>
+      <kP>-4.0</kP><mQ>-6.0</mQ><nR>-12.0</nR>
+      <xUabsU>-22.0</xUabsU><yVabsV>-48.0</yVabsV><zWabsW>-60.0</zWabsW>
+      <kPabsP>-5.0</kPabsP><mQabsQ>-8.0</mQabsQ><nRabsR>-18.0</nRabsR>
+    </plugin>
+
+    <!-- Thruster Plugins -->
+    <plugin
+      filename="gz-sim-thruster-system"
+      name="gz::sim::systems::Thruster">
+      <namespace>blueboat</namespace>
+      <joint_name>left_propeller_joint</joint_name>
+      <thrust_coefficient>0.0035</thrust_coefficient>
+      <fluid_density>1000</fluid_density>
+      <propeller_diameter>0.10</propeller_diameter>
+      <velocity_control>false</velocity_control>
+      <use_angvel_cmd>false</use_angvel_cmd>
+      <sub_topic>cmd_thrust_left</sub_topic>
+    </plugin>
+
+    <plugin
+      filename="gz-sim-thruster-system"
+      name="gz::sim::systems::Thruster">
+      <namespace>blueboat</namespace>
+      <joint_name>right_propeller_joint</joint_name>
+      <thrust_coefficient>0.0035</thrust_coefficient>
+      <fluid_density>1000</fluid_density>
+      <propeller_diameter>0.10</propeller_diameter>
+      <velocity_control>false</velocity_control>
+      <use_angvel_cmd>false</use_angvel_cmd>
+      <sub_topic>cmd_thrust_right</sub_topic>
+    </plugin>
+
+  </model>
+</sdf>
